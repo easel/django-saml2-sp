@@ -96,7 +96,6 @@ def _get_user_from_assertion(assertion):
     Returns the user object that was created.
     """
     email = _get_email_from_assertion(assertion)
-    import pdb; pdb.set_trace()
     try:
         user = User.objects.get(email=email)
     except:
@@ -106,10 +105,12 @@ def _get_user_from_assertion(assertion):
             saml2sp_settings.SAML2SP_SAML_USER_PASSWORD
         )
 
-    #NOTE: This next line will fail if the user has changed his password
-    #      via the local account. This actually is a good thing, I think.
+    #NOTE: Login will fail if the user has changed his password via the local
+    # account. This actually is a good thing, I think.
     user = authenticate(username=user.username,
                         password=saml2sp_settings.SAML2SP_SAML_USER_PASSWORD)
+    if user is None:
+        raise Exception('Unable to login user "%s" with SAML2SP_SAML_USER_PASSWORD' % email)
     return user
 
 def sso_login(request, selected_idp_url):
